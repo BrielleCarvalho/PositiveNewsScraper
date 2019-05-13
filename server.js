@@ -11,7 +11,7 @@ var cheerio = require("cheerio");
 // Require all models
 var db = require("./models");
 
-var PORT = 3000;
+var port = process.env.PORT || 3000;
 
 // Initialize Express
 var app = express();
@@ -55,7 +55,7 @@ app.get("/scrape", function (req, res) {
                 .attr("href");
 
             // Create a new Article using the `result` object built from scraping
-            db.Story.create(result)
+            db.Article.create(result)
                 .then(function (dbStory) {
                     // View the added result in the console
                     console.log(dbStory);
@@ -76,7 +76,7 @@ app.get("/scrape", function (req, res) {
 // Route for getting all Articles from the db
 app.get("/articles", function (req, res) {
     // TODO: Finish the route so it grabs all of the articles
-    db.Story.find({})
+    db.Article.find({})
         .then(function (dbStory) {
             res.send(dbStory);
         })
@@ -85,38 +85,33 @@ app.get("/articles", function (req, res) {
         });
 });
 
-// Route for grabbing a specific Article by id, populate it with it's note
+// Route for grabbing a specific Article by id
 app.get("/articles/:id", function (req, res) {
     // TODO
     // ====
-    // Finish the route so it finds one article using the req.params.id,
-    // and run the populate method with "note",
-    // then responds with the article with the note included
-    db.Story.find(
-        {
-            _id: req.params.id
-        }
-    )
-        .populate("note")
-        .then(function (dbStory) {
-            res.json(dbStory)
+    // Populate the Notes with article you "saved"
+    db.Note.create(res)
+        .then(function(saved){
+            console.log("*******this is the SAVED variable: " + saved)
         })
-        .catch(function (err) {
-            console.log(err)
-        })
+        .catch(function(err){
+            console.log("*** This is an ERROR: " + err)
+        });
 
 });
 
-// Route for saving/updating an Article's associated Note
-// app.post("/articles/:id", function (req, res) {
-//     // TODO
-//     // ====
-//     // save the new note that gets posted to the Notes collection
-//     // then find an article from the req.params.id
-//     // and update it's "note" property with the _id of the new note
-// });
+app.get("/saved", function(req, res){
+    db.Note.find({})
+    .then(function(saves){
+        res.send(saves)
+    })
+    .catch(function(err){
+        console.log(err)
+    })
+})
+
 
 // Start the server
-app.listen(PORT, function () {
-    console.log("App running on port " + PORT + "!");
+app.listen(port, function () {
+    console.log("App running on port " + port + "!");
 });
